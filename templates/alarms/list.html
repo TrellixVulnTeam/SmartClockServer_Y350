@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Active Alarms{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+    <h1> Alarms Currently Set </h1>
+{% else %}
+  <p>You are not logged in</p>
+  <a href="{% url 'login' %}">login</a>
+{% endif %}
+{% endblock %}
