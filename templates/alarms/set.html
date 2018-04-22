@@ -3,9 +3,13 @@
 {% block title %} Set Alarms {% endblock %}
 
 {% block content %}
-    <form action = {% url "setalarm" %}}method="POST">
-    {% csrf_token %}
-    {{ form }}
+    <h1>Set A New Alarm</h1>
+    <h4>Remember to enter a zip code at the end of the address</h4>
+    <form action = "{% url "setalarm" %}" method="POST" >
+        {% csrf_token %}
+        <div id="formBox">
+        {{ form }}
+        </div>
     <input type="submit" value="Set" />
     </form>
 {% endblock %}

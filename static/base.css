@@ -18,3 +18,15 @@ main {
     right: 4px;
     bottom: -8px
 }
+
+#cID {
+    position: absolute;
+    left: 4px;
+    bottom: -8px;
+}
+
+#formBox {
+    width: 300px;
+    background-color: mediumaquamarine;
+}
+

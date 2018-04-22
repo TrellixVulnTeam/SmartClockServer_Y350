@@ -6,9 +6,23 @@
 {% block content %}
 {% if user.is_authenticated %}
     Hi {{ user.username }}!
-    <p><a href="{% url 'viewalarms' %}">View Alarms</a></p>
-    <p><a href="{% url 'setalarm' %}">Set an Alarm</a></p>
-
+        <p><a href="{% url 'viewalarms' %}">View Alarms</a></p>
+        <p><a href="{% url 'setalarm' %}">Set an Alarm</a></p>
+    {% if not user.profile.clock %}
+        <p>Enter the ClockID on your Smart Clock:</p>
+        <form action = "{% url 'link' %}" method="post">
+            {% csrf_token %}
+            <input type="number" name = "cID">
+            <input type="submit">
+        </form>
+    {% elif False %}
+        <!-- Doesn't work yet, never shown -->
+        <form action = "{% url 'link' %}" method="post">
+        {%  csrf_token %}
+        <p>Click the button below to reset your clockID</p>
+        <input id="reset" type="submit" name = "Reset Clock ID">
+        </form>
+    {% endif %}
 {% else %}
   <p>You are not logged in</p>
   <a href="{% url 'login' %}">login</a>

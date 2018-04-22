@@ -5,6 +5,16 @@
 {% block content %}
     {% if user.is_authenticated %}
     <h1> Alarms Currently Set </h1>
+        <ul>
+            {% for alarm in alarms %}
+                <li>{{ alarm.0 }} -
+                    {{ alarm.1 }} -
+                    Origin: {{ alarm.9 }} -
+                    Destination: {{ alarm.10 }} |
+                    <a href="{% url 'delete' alarm.11 %}">Delete</a>
+                </li>
+            {% endfor %}
+        </ul>
 {% else %}
   <p>You are not logged in</p>
   <a href="{% url 'login' %}">login</a>

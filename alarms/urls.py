@@ -3,8 +3,9 @@ from . import views
 
 
 urlpatterns = [
-    path('get', views.getalarms, name='getalarms'),
+    path('get/<clockid>', views.getalarms, name='getalarms'),
     path('datadump', views.recvdata, name='datadump'),
     path('view', views.viewalarms, name='viewalarms'),
-    path('set', views.setalarms, name="setalarm")
+    path('set', views.setalarms, name="setalarm"),
+    path('delete/<apk>', views.deletealarms, name='delete'),
 ]

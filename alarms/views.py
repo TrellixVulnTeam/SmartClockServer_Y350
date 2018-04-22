@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
+from django.core import serializers
 from json import loads, JSONDecodeError
 from .models import Vector, Alarm, Profile
 from .forms import AlarmForm
 
 # TODO (optional): Automatically sync clock set alarms with server
-# TODO: Finish the alarms view
 
 
 # Allow the user to set new alarms
@@ -16,10 +16,33 @@ def setalarms(request):
     if request.method == 'POST':
         form = AlarmForm(request.POST)
         if form.is_valid():
-            # process data
-            return HttpResponseRedirect(reverse('home'))
-    else:
+            data = request.POST
+            print(data)
+            # Create the new alarm
+            newalarm = Alarm()
+            newalarm.label = data["label"]
+            newalarm.time = data["time"]
+            newalarm.origin = data["origin"]
+            newalarm.destination = data["destination"]
+            newalarm.sunRepeat = "sunRepeat" in data
+            newalarm.monRepeat = "monRepeat" in data
+            newalarm.tueRepeat = "tueRepeat" in data
+            newalarm.wedRepeat = "wedRepeat" in data
+            newalarm.thuRepeat = "thuRepeat" in data
+            newalarm.friRepeat = "friRepeat" in data
+            newalarm.satRepeat = "satRepeat" in data
+            newalarm.user = Profile.objects.get(user=request.user)
+            newalarm.save()
+            # Redirect to the set alarm page, TODO: Success page
+            return HttpResponseRedirect(reverse('setalarm'))
+    #TODO: Finish syncing with the pi
+    elif request.method == 'PUT':
+        print(request.PUT)
+        pass
+    elif request.method == "GET":
         form = AlarmForm()
+    else:
+        return HttpResponseRedirect(reverse('home'))
     # TODO: Set up "form" correctly
     return render(request, 'alarms/set.html', {'form': form})
 
@@ -29,38 +52,61 @@ def viewalarms(request):
     params = {}
     # Check to see if the user is logged in
     if request.user.is_authenticated:
-        usr = request.user
+        usr = Profile.objects.get(user=request.user)
         # Get all alarms associated with the user
         alarms = list(Alarm.objects.filter(user=usr))
         # TODO: Make this less hacky
         # Makes a list of tuples of the form:
         #   (label, date, doesrepeat, origin, destination)
         params["alarms"] = []
+        print(Alarm.objects.all())
         for a in alarms:
             params["alarms"].append(
                 (a.label,
-                 a.date,
-                 a.repeat,
+                 a.time,
+                 a.sunRepeat,
+                 a.monRepeat,
+                 a.tueRepeat,
+                 a.wedRepeat,
+                 a.thuRepeat,
+                 a.friRepeat,
+                 a.satRepeat,
                  a.origin,
-                 a.destination)
+                 a.destination,
+                 a.pk,
+                 )
             )
-        return render(request, 'alarms/list.html', params)
+        print(params)
+        return render(request, 'alarms/list.html', context=params)
     return HttpResponseRedirect(reverse('home'))
 
 
+# apk is the primary key of the alarm to be deleted
+def deletealarms(request, apk):
+    alarm = Alarm.objects.get(pk=apk)
+    alarm.delete()
+    return HttpResponseRedirect(reverse('viewalarms'))
+
+
 # Get a JSON of all alarms and return it
-def getalarms(request):
+def getalarms(request, clockid):
+    # TODO: Make more meaningful error responses
     if request.method == 'GET':
-        # Get the clock ID
-        cID = request.get("clockid")
         # Get all alarms associated with the clockid/user
-        usr = Profile.objects.get(clock=cID)
-        alarms = list(Alarm.objects.filter(user=usr))
-        # Return all alarms currently set
-        return JsonResponse(alarms, safe=False)
+        try:
+            usr = Profile.objects.get(clock=clockid)
+        except:
+            return HttpResponseBadRequest(request)
+        if usr:
+            alarms = serializers.serialize("json", Alarm.objects.filter(user=usr))
+            # Return all alarms currently set
+            return JsonResponse(alarms, safe=False)
+        else:
+            return HttpResponseBadRequest(request)
     else:
         # An end user will always use a GET, don't need to redirect
-        return HttpResponseBadRequest
+        return HttpResponseBadRequest(request)
+
 
 # receive data from a clock and save it
 def recvdata(request):
@@ -91,3 +137,5 @@ def recvdata(request):
     # Redirect to home if method is anything but POST
     else:
         return HttpResponseRedirect(reverse('home'))
+
+
